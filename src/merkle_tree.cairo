@@ -80,21 +80,21 @@ impl MekleFileTreeImpl of MerkleFileTreeTrait {
     //     }
     // }
 
-    fn verify(self: @MerkleFileTree) -> bool {
-        let mut i = 0;
-        let len_files = self.files.len();
+    // fn verify(self: @MerkleFileTree) -> bool {
+    //     let mut i = 0;
+    //     let len_files = self.files.len();
 
-        let mut concat = 0;
-        while i != len_files {
-            let file = *self.files[i];
-            let file_hash: felt252 = file.get_content_hash(); // not working!!!!
+    //     let mut concat = 0;
+    //     while i != len_files {
+    //         let file = *self.files[i];
+    //         let file_hash: felt252 = file.get_content_hash(); // not working!!!!
 
-            concat += file_hash;
-            i += 1;
-        };
+    //         concat += file_hash;
+    //         i += 1;
+    //     };
 
-        let output = PoseidonTrait::new().update_with(concat).finalize();
+    //     let output = PoseidonTrait::new().update_with(concat).finalize();
 
-        assert_eq!(output, self.root)
-    }
+    //     assert_eq!(output, self.root)
+    // }
 }
