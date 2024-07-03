@@ -1,4 +1,3 @@
-use provable_server::file::FileTrait;
 use core::poseidon::PoseidonTrait;
 use core::hash::{HashStateTrait, HashStateExTrait};
 
@@ -31,7 +30,7 @@ impl MekleFileTreeImpl of MerkleFileTreeTrait {
             let tmp_arr = array![new_file];
             let new_files = (@self.files).concat(@tmp_arr);
 
-            self.files = new_files;
+            self.files = new_files.unique();
         }
     }
 
@@ -55,15 +54,14 @@ impl MekleFileTreeImpl of MerkleFileTreeTrait {
         }
     }
 
-    fn calculate_root(ref self: MerkleFileTree) -> felt252 {
-        self.files = self.files.unique();
+    fn calculate_root(self: @MerkleFileTree) -> felt252 {
         let mut i = 0;
         let len_files = self.files.len();
 
         let mut concat = 0;
         while i != len_files {
             let file = *self.files[i];
-            let file_hash: felt252 = file.get_content_hash();
+            let file_hash: felt252 = file.get_content_hash(); // not working!!!!
 
             concat += file_hash;
             i += 1;
@@ -82,7 +80,21 @@ impl MekleFileTreeImpl of MerkleFileTreeTrait {
     //     }
     // }
 
-    // fn verify(self: @MerkleFileTree) -> bool {
+    fn verify(self: @MerkleFileTree) -> bool {
+        let mut i = 0;
+        let len_files = self.files.len();
 
-    // }
+        let mut concat = 0;
+        while i != len_files {
+            let file = *self.files[i];
+            let file_hash: felt252 = file.get_content_hash(); // not working!!!!
+
+            concat += file_hash;
+            i += 1;
+        };
+
+        let output = PoseidonTrait::new().update_with(concat).finalize();
+
+        assert_eq!(output, self.root)
+    }
 }

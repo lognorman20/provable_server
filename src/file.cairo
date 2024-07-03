@@ -5,7 +5,12 @@ pub struct File {
     pub content_hash: felt252
 }
 
-#[generate_trait]
+pub trait FileTrait {
+    fn get_path(self: @File) -> felt252;
+    fn is_dir(self: @File) -> bool;
+    fn get_content_hash(self: @File) -> felt252;
+}
+
 impl FileImpl of FileTrait {
     fn get_path(self: @File) -> felt252 {
         *self.path
