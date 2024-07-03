@@ -1,15 +1,8 @@
-use core::poseidon::PoseidonTrait;
-use core::hash::{HashStateTrait, HashStateExTrait};
-
-#[derive(PartialEq, Drop, Clone, Hash)]
+#[derive(PartialEq, Drop, Copy, Hash)]
 pub struct File {
     pub path: felt252,
     pub is_dir: bool,
     pub content_hash: felt252
-}
-
-pub fn hash_file(file: File) -> felt252 {
-    PoseidonTrait::new().update_with(file).finalize()
 }
 
 #[generate_trait]
