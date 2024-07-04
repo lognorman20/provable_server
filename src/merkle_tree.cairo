@@ -1,7 +1,8 @@
 use core::poseidon::PoseidonTrait;
 use core::hash::{HashStateTrait, HashStateExTrait};
 
-use super::File;
+use provable_server::File;
+use provable_server::file::FileTrait;
 use alexandria_data_structures::array_ext::ArrayTraitExt;
 
 struct MerkleFileTree {
