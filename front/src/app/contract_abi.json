@@ -1,0 +1,195 @@
+[
+    {
+      "type": "impl",
+      "name": "FileImpl",
+      "interface_name": "contracts::FileTrait"
+    },
+    {
+      "type": "enum",
+      "name": "core::bool",
+      "variants": [
+        {
+          "name": "False",
+          "type": "()"
+        },
+        {
+          "name": "True",
+          "type": "()"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "contracts::File::FileData",
+      "members": [
+        {
+          "name": "path",
+          "type": "core::felt252"
+        },
+        {
+          "name": "content_hash",
+          "type": "core::felt252"
+        }
+      ]
+    },
+    {
+      "type": "interface",
+      "name": "contracts::FileTrait",
+      "items": [
+        {
+          "type": "function",
+          "name": "create_file",
+          "inputs": [
+            {
+              "name": "path",
+              "type": "core::felt252"
+            },
+            {
+              "name": "content_hash",
+              "type": "core::felt252"
+            }
+          ],
+          "outputs": [],
+          "state_mutability": "external"
+        },
+        {
+          "type": "function",
+          "name": "remove",
+          "inputs": [
+            {
+              "name": "content_hash",
+              "type": "core::felt252"
+            }
+          ],
+          "outputs": [],
+          "state_mutability": "external"
+        },
+        {
+          "type": "function",
+          "name": "update",
+          "inputs": [
+            {
+              "name": "path",
+              "type": "core::felt252"
+            },
+            {
+              "name": "prev_content_hash",
+              "type": "core::felt252"
+            },
+            {
+              "name": "new_content_hash",
+              "type": "core::felt252"
+            }
+          ],
+          "outputs": [],
+          "state_mutability": "external"
+        },
+        {
+          "type": "function",
+          "name": "exists",
+          "inputs": [
+            {
+              "name": "content_hash",
+              "type": "core::felt252"
+            }
+          ],
+          "outputs": [
+            {
+              "type": "core::bool"
+            }
+          ],
+          "state_mutability": "view"
+        },
+        {
+          "type": "function",
+          "name": "get_file_count",
+          "inputs": [],
+          "outputs": [
+            {
+              "type": "core::integer::u8"
+            }
+          ],
+          "state_mutability": "view"
+        },
+        {
+          "type": "function",
+          "name": "get_file",
+          "inputs": [
+            {
+              "name": "content_hash",
+              "type": "core::felt252"
+            }
+          ],
+          "outputs": [
+            {
+              "type": "contracts::File::FileData"
+            }
+          ],
+          "state_mutability": "view"
+        }
+      ]
+    },
+    {
+      "type": "constructor",
+      "name": "constructor",
+      "inputs": []
+    },
+    {
+      "type": "event",
+      "name": "contracts::File::Create",
+      "kind": "struct",
+      "members": [
+        {
+          "name": "file",
+          "type": "contracts::File::FileData",
+          "kind": "data"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "name": "contracts::File::Update",
+      "kind": "struct",
+      "members": [
+        {
+          "name": "file",
+          "type": "contracts::File::FileData",
+          "kind": "data"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "name": "contracts::File::Remove",
+      "kind": "struct",
+      "members": [
+        {
+          "name": "content_hash",
+          "type": "core::felt252",
+          "kind": "data"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "name": "contracts::File::Event",
+      "kind": "enum",
+      "variants": [
+        {
+          "name": "Create",
+          "type": "contracts::File::Create",
+          "kind": "nested"
+        },
+        {
+          "name": "Update",
+          "type": "contracts::File::Update",
+          "kind": "nested"
+        },
+        {
+          "name": "Remove",
+          "type": "contracts::File::Remove",
+          "kind": "nested"
+        }
+      ]
+    }
+  ]
