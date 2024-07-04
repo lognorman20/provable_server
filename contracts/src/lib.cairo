@@ -6,7 +6,7 @@ trait FileTrait<T> {
     /// @dev Create a new file
     fn create_file(ref self: T, path: felt252, content_hash: felt252);
     /// @dev Remove a file from the file system
-    fn remove_file(ref self: T, content_hash: felt252);
+    fn remove(ref self: T, content_hash: felt252);
     /// @dev Update a file's metadata
     fn update(
         ref self: T,
@@ -16,10 +16,15 @@ trait FileTrait<T> {
     );
     /// @dev Function that checks if a given file exists
     fn exists(self: @T, content_hash: felt252) -> bool;
+    /// @dev Get the # of files within the system
+    fn get_file_count(self: @T) -> u8;
+    /// @dev Get file data of a particular file
+    fn get_file(self: @T, content_hash: felt252) -> contracts::File::FileData;
 }
 
 #[starknet::contract]
 mod File {
+    use contracts::FileTrait;
     use starknet::ContractAddress;
     use starknet::get_caller_address;
 
@@ -30,7 +35,7 @@ mod File {
         files: LegacyMap::<felt252, FileData>
     }
 
-    #[derive(Copy, Drop, Hash, starknet::Store, starknet::Event, Serde, PartialEq)]
+    #[derive(Copy, Drop, Hash, starknet::Store, starknet::Event, Serde, PartialEq, Debug)]
     struct FileData {
         path: felt252, // use byte array instead?
         content_hash: felt252
@@ -41,7 +46,6 @@ mod File {
         file: FileData
     }
 
-    /// @dev Represents a vote that was cast
     #[derive(Drop, starknet::Event)]
     struct Update {
         file: FileData
@@ -54,7 +58,6 @@ mod File {
 
     #[constructor]
     fn constructor(ref self: ContractState) {
-        // Initialize the file count to 0
         self.num_files.write(0_u8);
     }
 
@@ -70,6 +73,10 @@ mod File {
     #[abi(embed_v0)]
     impl FileImpl of super::FileTrait<ContractState> {
         fn create_file(ref self: ContractState, path: felt252, content_hash: felt252) {
+            if self.exists(content_hash) {
+                return;
+            }
+
             let file = FileData { path, content_hash };
             self.files.write(content_hash, file);
 
@@ -79,8 +86,7 @@ mod File {
             self.emit(Create { file });
         }
 
-        /// @dev Remove a file from the file system
-        fn remove_file(ref self: ContractState, content_hash: felt252) {
+        fn remove(ref self: ContractState, content_hash: felt252) {
             if self.exists(content_hash) {
                 let dummy = FileData { path: '', content_hash: 0 };
                 self.files.write(content_hash, dummy);
@@ -92,7 +98,6 @@ mod File {
             }
         }
 
-        /// @dev Update a given file
         fn update(
             ref self: ContractState,
             path: felt252,
@@ -103,12 +108,11 @@ mod File {
             self.files.write(prev_content_hash, dummy);
 
             let updated_file = FileData { path, content_hash: new_content_hash };
-            self.files.write(new_content_hash, dummy);
+            self.files.write(new_content_hash, updated_file);
 
             self.emit(Update { file: updated_file });
         }
 
-        /// @dev Check if a file exists
         fn exists(
             self: @ContractState,
             content_hash: felt252
@@ -118,6 +122,14 @@ mod File {
             let file = self.files.read(content_hash);
             
             file != dummy
+        }
+
+        fn get_file_count(self: @ContractState) -> u8 {
+            self.num_files.read()
+        }
+
+        fn get_file(self: @ContractState, content_hash: felt252) -> FileData {
+            self.files.read(content_hash)
         }
     }
 }
