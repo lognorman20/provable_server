@@ -29,7 +29,7 @@ export function Mainv0() {
   const handleSave = async () => {
     try {
       const url = currentDocId
-        ? `http://localhost:3000/documents/${currentDocId}`
+        ? `http://localhost:3000/update/${currentDocId}`
         : "http://localhost:3000/submit";
       const method = currentDocId ? "PUT" : "POST";
 
