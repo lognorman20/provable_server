@@ -112,7 +112,7 @@ export function Mainv0() {
         <div className="flex-1 overflow-auto py-2">
           <nav className="grid gap-1">
             {documents.map((doc) => (
-              <div key={doc.id} className="flex items-center justify-between rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-muted">
+              <div key={doc._id} className="flex items-center justify-between rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-muted">
                 <a
                   href="#"
                   className="flex-1 truncate"
