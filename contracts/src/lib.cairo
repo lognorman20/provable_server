@@ -4,13 +4,13 @@ use core::array::Array;
 #[starknet::interface]
 trait FileTrait<T> {
     /// @dev Create a new file
-    fn create_file(ref self: T, path: felt252, content_hash: felt252);
+    fn create_file(ref self: T, path: ByteArray, content_hash: felt252);
     /// @dev Remove a file from the file system
     fn remove(ref self: T, content_hash: felt252);
     /// @dev Update a file's metadata
     fn update(
         ref self: T,
-        path: felt252,
+        path: ByteArray,
         prev_content_hash: felt252,
         new_content_hash: felt252,
     );
@@ -35,9 +35,9 @@ mod File {
         files: LegacyMap::<felt252, FileData>
     }
 
-    #[derive(Copy, Drop, Hash, starknet::Store, starknet::Event, Serde, PartialEq, Debug)]
+    #[derive(Drop, starknet::Store, starknet::Event, Serde, PartialEq, Debug, Clone)]
     struct FileData {
-        path: felt252, // use byte array instead?
+        path: ByteArray,
         content_hash: felt252
     }
 
@@ -72,23 +72,24 @@ mod File {
 
     #[abi(embed_v0)]
     impl FileImpl of super::FileTrait<ContractState> {
-        fn create_file(ref self: ContractState, path: felt252, content_hash: felt252) {
+        fn create_file(ref self: ContractState, path: ByteArray, content_hash: felt252) {
             if self.exists(content_hash) {
                 return;
             }
 
             let file = FileData { path, content_hash };
+            let emitted_file = file.clone();
             self.files.write(content_hash, file);
 
             let prev_file_cnt = self.num_files.read();
             self.num_files.write(prev_file_cnt + 1);
 
-            self.emit(Create { file });
+            self.emit(Create { file: emitted_file });
         }
 
         fn remove(ref self: ContractState, content_hash: felt252) {
             if self.exists(content_hash) {
-                let dummy = FileData { path: '', content_hash: 0 };
+                let dummy = FileData { path: "", content_hash: 0 };
                 self.files.write(content_hash, dummy);
                 
                 let prev_file_cnt = self.num_files.read();
@@ -100,17 +101,19 @@ mod File {
 
         fn update(
             ref self: ContractState,
-            path: felt252,
+            path: ByteArray,
             prev_content_hash: felt252,
             new_content_hash: felt252,
         ) {
-            let dummy = FileData { path: '', content_hash: 0 };
+            let dummy = FileData { path: "", content_hash: 0 };
+
             self.files.write(prev_content_hash, dummy);
 
             let updated_file = FileData { path, content_hash: new_content_hash };
+            let emitted_file = updated_file.clone();
             self.files.write(new_content_hash, updated_file);
 
-            self.emit(Update { file: updated_file });
+            self.emit(Update { file: emitted_file });
         }
 
         fn exists(
@@ -118,7 +121,7 @@ mod File {
             content_hash: felt252
         ) -> bool {
             // TODO: ask if there's a better way to check if null
-            let dummy = FileData { path: '', content_hash: 0 };
+            let dummy = FileData { path: "", content_hash: 0 };
             let file = self.files.read(content_hash);
             
             file != dummy
