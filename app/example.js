@@ -5,8 +5,8 @@ const provider = new RpcProvider({
     nodeUrl: 'https://starknet-sepolia.public.blastapi.io/rpc/v0_7',
 });
 
-const privateKey0 = "0x03616e56dd516392009cf3fafa246a294da8cd886824c657b586e6b4a5973bf7";
-const account0Address = "0x00E0964B9c635B1D12875F52a4CF5c3F72acffcBC18fdc085A819Eb88656D0FD"; // make sure ur wallet has some eth from the faucet
+const privateKey0 = "<ur argent private key>";
+const account0Address = "<ur argent account addres>"; // make sure ur wallet has some eth from the faucet
 const account0 = new Account(provider, account0Address, privateKey0);
 
 const contractAddress = '0x04b306b10d8be501edc8ba8de2b318b103398b61b3c6aa6570cc891533088b72';
