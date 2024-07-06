@@ -2,6 +2,8 @@ import {Mainv0} from "../components/mainv0";
 import { Account, RpcProvider, json, Contract, hash} from 'starknet';
 import fs from 'fs';
 import * as dotenv from 'dotenv';
+import { initializeContract } from '../lib/contract';
+
 dotenv.config();
 
 const provider = new RpcProvider({ nodeUrl: 'https://free-rpc.nethermind.io/sepolia-juno' });
@@ -12,11 +14,12 @@ const account = new Account(provider, accountAddress, privateKey, "1");
 const testHash = hash.starknetKeccak('lzieflzeifnzeoifnzeoifneofi').toString();
 
 
+initializeContract();
+
 export default function Home() {
   return (
   <main className="mainV0">
     <Mainv0 />
-    {testHash}
   </main>
   );
 }

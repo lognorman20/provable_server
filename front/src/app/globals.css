@@ -3,21 +3,26 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+  --primary-color: #643c00;
+  --primary-color-dark: #643c00;
+  --secondary-color: white;
+  --foreground-color: black;
+  --background-color: #f8f9fa; /* Example background color for input areas */
+  --button-background-color: #1b1b1b; /* Example save button background color */
+  --button-background-color-dark: black; /* Example save button hover color */
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --foreground-rgb: 255, 255, 255;
     --background-start-rgb: 0, 0, 0;
     --background-end-rgb: 0, 0, 0;
+    --foreground-color: white;
+    --background-color: #0c0c0c; /* Example dark mode background color for input areas */
   }
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
+  color: var(--foreground-color);
   background: linear-gradient(
       to bottom,
       transparent,

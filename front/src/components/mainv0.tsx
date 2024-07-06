@@ -5,12 +5,39 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Textarea } from "@/components/ui/textarea";
 import { hash as starknetHash } from "starknet";
+import { createFile, updateFile, removeFile, getFileCount, getFile } from '../lib/contract';
+import AlertDialog from './AlertDialog';
+import React from 'react';
+import Image from 'next/image';
+
+function FileUpload({ onFileRead }) {
+  const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const text = e.target.result;
+        onFileRead(text, file.name); // Pass the file name
+      };
+      reader.readAsText(file);
+    }
+  };
+
+  return (
+    <label className="cursor-pointer">
+      <UploadIcon className="h-6 w-6" />
+      <input type="file" onChange={handleFileChange} className="hidden" />
+    </label>
+  );
+}
 
 export function Mainv0() {
   const [text, setText] = useState("");
   const [name, setName] = useState("");
   const [documents, setDocuments] = useState([]);
   const [currentDocId, setCurrentDocId] = useState(null);
+  const [alertMessage, setAlertMessage] = useState('');
+  const [transactionHash, setTransactionHash] = useState('');
 
   const fetchDocuments = async () => {
     try {
@@ -34,41 +61,83 @@ export function Mainv0() {
       const method = currentDocId ? "PUT" : "POST";
 
       const textHash = starknetHash.starknetKeccak(text).toString(); // Compute the hash of the text
-      console.log(text, textHash);
+      
+      const prevHash = currentDocId ? documents.find(doc => doc._id === currentDocId)?.hash : null;
+      console.log("prevhash is: ", prevHash);
+      console.log("currentHash is: ", textHash);
 
       const response = await fetch(url, {
         method: method,
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ text, name, hash: textHash }), // Include the hash in the request body
+        body: JSON.stringify({ text, name, hash: textHash }),
       });
 
       if (response.ok) {
+        if (method === "POST" ) {
+          if (name && textHash) {
+            const res = await createFile(name, textHash);
+            setAlertMessage(`File created: ${JSON.stringify(res.transaction_hash)}`);
+            setTransactionHash(res.transaction_hash); // Set the transaction hash
+            console.log("File created on chain");
+          } else {
+            setAlertMessage(`Error: Invalid parameters for createFile`);
+            console.error("Invalid parameters for createFile:", { name, textHash });
+          }
+        } else {
+          if (name && prevHash && textHash) {
+            const res = await updateFile(name, prevHash, textHash);
+            setAlertMessage(`File updated: ${JSON.stringify(res.transaction_hash)}`);
+            setTransactionHash(res.transaction_hash); // Set the transaction hash
+            console.log("File updated on chain");
+          } else {
+            setAlertMessage(`Error: Invalid parameters for updateFile`);
+            console.error("Invalid parameters for updateFile:", { name, prevHash, textHash });
+          }
+        }
         console.log("Text saved successfully");
         fetchDocuments(); // Refresh documents after save
       } else {
+        setAlertMessage(`Error: Failed to save text ${response.statusText}`);
         console.error("Failed to save text", response.statusText);
       }
     } catch (error) {
+      setAlertMessage(`Error: ${error.message}`);
       console.error("Error during fetch:", error);
     }
   };
 
   const handleDelete = async (id) => {
     try {
+      const docToDelete = documents.find((doc) => doc._id === id);
+      const name = docToDelete ? docToDelete.name : null;
+      const textHash = docToDelete ? starknetHash.starknetKeccak(docToDelete.text).toString() : null;
+      console.log("Hash of the text to be deleted:", textHash);
+      
       const response = await fetch(`http://localhost:3000/delete/${id}`, {
         method: "DELETE",
       });
-
+      
       if (response.ok) {
-        setDocuments((prevDocuments) => prevDocuments.filter((doc) => doc.id !== id));
+        setDocuments((prevDocuments) => prevDocuments.filter((doc) => doc._id !== id));
         console.log("Document deleted successfully");
         fetchDocuments(); // Refresh documents after delete
+        if (textHash) {
+          const res = await removeFile(textHash);
+          setAlertMessage(`File deleted: ${JSON.stringify(res.transaction_hash)}`);
+          setTransactionHash(res.transaction_hash); // Set the transaction hash
+          console.log("File deleted on chain");
+        } else {
+          setAlertMessage(`Error: Invalid parameters for removeFile`);
+          console.error("Invalid parameters for removeFile:", { name, textHash });
+        }
       } else {
+        setAlertMessage(`Error: Failed to delete document ${response.statusText}`);
         console.error("Failed to delete document", response.statusText);
       }
     } catch (error) {
+      setAlertMessage(`Error: ${error.message}`);
       console.error("Error during fetch:", error);
     }
   };
@@ -78,8 +147,10 @@ export function Mainv0() {
       const response = await fetch(`http://localhost:3000/documents/${id}`);
       if (!response.ok) {
         if (response.status === 404) {
+          setAlertMessage(`Error: Document not found`);
           console.error("Document not found");
         } else {
+          setAlertMessage(`Error: Failed to fetch document details ${response.statusText}`);
           console.error("Failed to fetch document details:", response.statusText);
         }
         return;
@@ -92,11 +163,18 @@ export function Mainv0() {
         setText(data.text);
         setCurrentDocId(data._id); // Set the current document ID
       } else {
+        setAlertMessage(`Error: Expected JSON response but got ${contentType}`);
         console.error("Expected JSON response but got:", contentType);
       }
     } catch (error) {
+      setAlertMessage(`Error: ${error.message}`);
       console.error("Error fetching document details:", error);
     }
+  };
+
+  const handleFileRead = (fileContent, fileName) => {
+    setText(fileContent);
+    setName(fileName); // Set the name state with the file name
   };
 
   return (
@@ -104,10 +182,18 @@ export function Mainv0() {
       <div className="flex flex-col border-r bg-muted/40 p-4">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-medium">Files</h2>
-          <Button variant="ghost" size="icon" className="rounded-full">
-            <PlusIcon className="h-4 w-4" />
-            <span className="sr-only">New File</span>
-          </Button>
+          <div className="flex items-center space-x-2">
+            <FileUpload onFileRead={handleFileRead} />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-full"
+              onClick={() => window.location.reload()} // Add this line to refresh the page
+            >
+              <PlusIcon className="h-4 w-4" />
+              <span className="sr-only">New File</span>
+            </Button>
+          </div>
         </div>
         <div className="flex-1 overflow-auto py-2">
           <nav className="grid gap-1">
@@ -160,6 +246,7 @@ export function Mainv0() {
           <Button className="ml-auto" onClick={handleSave}>Save</Button>
         </div>
       </div>
+      <AlertDialog message={alertMessage} onClose={() => setAlertMessage('')} transactionHash={transactionHash} />
     </div>
   )
 }
@@ -203,4 +290,17 @@ function XIcon(props) {
       <path d="m6 6 12 12" />
     </svg>
   )
+}
+
+function UploadIcon(props) {
+  return (
+    <Image
+      {...props}
+      src="/upload-minimalistic-svgrepo-com.svg"
+      alt="Upload Icon"
+      width={24}
+      height={24}
+      style={{ filter: 'invert(1)' }}
+    />
+  );
 }
