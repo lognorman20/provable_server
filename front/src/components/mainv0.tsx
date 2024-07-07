@@ -9,6 +9,7 @@ import { createFile, updateFile, removeFile, getFileCount, getFile } from '../li
 import AlertDialog from './AlertDialog';
 import React from 'react';
 import Image from 'next/image';
+import { fetchDocuments, saveDocument, deleteDocument, fetchDocumentDetails } from '../app/services/documentService'
 
 function FileUpload({ onFileRead }) {
   const handleFileChange = (event) => {
@@ -39,136 +40,65 @@ export function Mainv0() {
   const [alertMessage, setAlertMessage] = useState('');
   const [transactionHash, setTransactionHash] = useState('');
 
-  const fetchDocuments = async () => {
-    try {
-      const response = await fetch("http://localhost:3000/documents");
-      const data = await response.json();
-      setDocuments(data);
-    } catch (error) {
-      console.error("Error fetching documents:", error);
-    }
-  };
-
   useEffect(() => {
-    fetchDocuments();
+    fetchDocuments()
+      .then(setDocuments)
+      .catch(error => console.error("Error fetching documents:", error));
   }, []);
 
   const handleSave = async () => {
     try {
-      const url = currentDocId
-        ? `http://localhost:3000/update/${currentDocId}`
-        : "http://localhost:3000/submit";
-      const method = currentDocId ? "PUT" : "POST";
-
-      const textHash = starknetHash.starknetKeccak(text).toString(); // Compute the hash of the text
-      
+      const textHash = starknetHash.starknetKeccak(text).toString();
       const prevHash = currentDocId ? documents.find(doc => doc._id === currentDocId)?.hash : null;
-      console.log("prevhash is: ", prevHash);
-      console.log("currentHash is: ", textHash);
 
-      const response = await fetch(url, {
-        method: method,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ text, name, hash: textHash }),
-      });
+      const response = await saveDocument(currentDocId, { text, name, hash: textHash });
 
       if (response.ok) {
-        if (method === "POST" ) {
-          if (name && textHash) {
-            const res = await createFile(name, textHash);
-            setAlertMessage(`File created: ${JSON.stringify(res.transaction_hash)}`);
-            setTransactionHash(res.transaction_hash); // Set the transaction hash
-            console.log("File created on chain");
-          } else {
-            setAlertMessage(`Error: Invalid parameters for createFile`);
-            console.error("Invalid parameters for createFile:", { name, textHash });
-          }
-        } else {
-          if (name && prevHash && textHash) {
-            const res = await updateFile(name, prevHash, textHash);
-            setAlertMessage(`File updated: ${JSON.stringify(res.transaction_hash)}`);
-            setTransactionHash(res.transaction_hash); // Set the transaction hash
-            console.log("File updated on chain");
-          } else {
-            setAlertMessage(`Error: Invalid parameters for updateFile`);
-            console.error("Invalid parameters for updateFile:", { name, prevHash, textHash });
-          }
-        }
-        console.log("Text saved successfully");
-        fetchDocuments(); // Refresh documents after save
+        const res = currentDocId
+          ? await updateFile(name, prevHash, textHash)
+          : await createFile(name, textHash);
+
+        setAlertMessage(`File ${currentDocId ? 'updated' : 'created'}: ${JSON.stringify(res.transaction_hash)}`);
+        setTransactionHash(res.transaction_hash);
+        fetchDocuments().then(setDocuments);
       } else {
         setAlertMessage(`Error: Failed to save text ${response.statusText}`);
-        console.error("Failed to save text", response.statusText);
       }
     } catch (error) {
       setAlertMessage(`Error: ${error.message}`);
-      console.error("Error during fetch:", error);
     }
   };
 
   const handleDelete = async (id) => {
     try {
       const docToDelete = documents.find((doc) => doc._id === id);
-      const name = docToDelete ? docToDelete.name : null;
       const textHash = docToDelete ? starknetHash.starknetKeccak(docToDelete.text).toString() : null;
-      console.log("Hash of the text to be deleted:", textHash);
-      
-      const response = await fetch(`http://localhost:3000/delete/${id}`, {
-        method: "DELETE",
-      });
-      
+
+      const response = await deleteDocument(id);
+
       if (response.ok) {
         setDocuments((prevDocuments) => prevDocuments.filter((doc) => doc._id !== id));
-        console.log("Document deleted successfully");
-        fetchDocuments(); // Refresh documents after delete
         if (textHash) {
           const res = await removeFile(textHash);
           setAlertMessage(`File deleted: ${JSON.stringify(res.transaction_hash)}`);
-          setTransactionHash(res.transaction_hash); // Set the transaction hash
-          console.log("File deleted on chain");
-        } else {
-          setAlertMessage(`Error: Invalid parameters for removeFile`);
-          console.error("Invalid parameters for removeFile:", { name, textHash });
+          setTransactionHash(res.transaction_hash);
         }
       } else {
         setAlertMessage(`Error: Failed to delete document ${response.statusText}`);
-        console.error("Failed to delete document", response.statusText);
       }
     } catch (error) {
       setAlertMessage(`Error: ${error.message}`);
-      console.error("Error during fetch:", error);
     }
   };
 
   const handleDocumentClick = async (id) => {
     try {
-      const response = await fetch(`http://localhost:3000/documents/${id}`);
-      if (!response.ok) {
-        if (response.status === 404) {
-          setAlertMessage(`Error: Document not found`);
-          console.error("Document not found");
-        } else {
-          setAlertMessage(`Error: Failed to fetch document details ${response.statusText}`);
-          console.error("Failed to fetch document details:", response.statusText);
-        }
-        return;
-      }
-
-      const contentType = response.headers.get("content-type");
-      if (contentType && contentType.indexOf("application/json") !== -1) {
-        const data = await response.json();
-        setName(data.name);
-        setText(data.text);
-        setCurrentDocId(data._id); // Set the current document ID
-      } else {
-        setAlertMessage(`Error: Expected JSON response but got ${contentType}`);
-        console.error("Expected JSON response but got:", contentType);
-      }
+      const data = await fetchDocumentDetails(id);
+      setName(data.name);
+      setText(data.text);
+      setCurrentDocId(data._id);
     } catch (error) {
       setAlertMessage(`Error: ${error.message}`);
-      console.error("Error fetching document details:", error);
     }
   };
 

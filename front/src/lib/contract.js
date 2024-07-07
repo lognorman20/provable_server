@@ -7,6 +7,10 @@ dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
 const privateKey0 = process.env.PRIVATE_KEY;
 
+if (!privateKey0) {
+  throw new Error("PRIVATE_KEY environment variable is not set");
+}
+
 const account0Address = '0x02e6721d8276a16dbfccf2416a2d5fecd40d8adaf6ef528d4aea24f63d3cc03b'; // make sure ur wallet has some eth from the faucet
 const contractAddress = '0x04b306b10d8be501edc8ba8de2b318b103398b61b3c6aa6570cc891533088b72';
 
@@ -93,4 +97,3 @@ export async function getFile(contentHash) {
         console.error('Error getting file:', error);
     }
 }
-
