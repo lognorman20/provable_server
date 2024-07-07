@@ -1,0 +1,49 @@
+.alert-dialog-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.alert-dialog-content {
+    background: var(--background-color); /* Match input area background */
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    color: var(--foreground-color); /* Ensure text is visible */
+}
+
+.alert-dialog-close-button,
+.alert-dialog-link-button {
+    margin-top: 20px;
+    padding: 10px 20px;
+    color: var(--secondary-color);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none; /* Ensure link button has no underline */
+    display: inline-block; /* Ensure it behaves like a button */
+}
+
+.alert-dialog-close-button {
+    background: var(--button-background-color); /* Match save button background */
+}
+
+.alert-dialog-close-button:hover {
+    background: var(--button-background-color-dark); /* Match save button hover color */
+}
+
+.alert-dialog-link-button {
+    background: var(--primary-color); /* Different background for link button */
+}
+
+.alert-dialog-link-button:hover {
+    background: var(--primary-color-dark); /* Different hover color for link button */
+}
