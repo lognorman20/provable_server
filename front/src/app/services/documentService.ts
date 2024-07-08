@@ -6,7 +6,7 @@ export const fetchDocuments = async () => {
   return response.json();
 };
 
-export const saveDocument = async (id, data) => {
+export const saveDocument = async (id: string | undefined, data: Record<string, any>) => {
   const url = id ? `${API_BASE_URL}/update/${id}` : `${API_BASE_URL}/submit`;
   const method = id ? "PUT" : "POST";
   const response = await fetch(url, {
@@ -18,13 +18,13 @@ export const saveDocument = async (id, data) => {
   return response;
 };
 
-export const deleteDocument = async (id) => {
+export const deleteDocument = async (id: string) => {
   const response = await fetch(`${API_BASE_URL}/delete/${id}`, { method: "DELETE" });
   if (!response.ok) throw new Error(`Failed to delete document: ${response.statusText}`);
   return response;
 };
 
-export const fetchDocumentDetails = async (id) => {
+export const fetchDocumentDetails = async (id: string) => {
   const response = await fetch(`${API_BASE_URL}/documents/${id}`);
   if (!response.ok) throw new Error(`Failed to fetch document details: ${response.statusText}`);
   return response.json();
