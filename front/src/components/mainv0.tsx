@@ -11,13 +11,24 @@ import React from 'react';
 import Image from 'next/image';
 import { fetchDocuments, saveDocument, deleteDocument, fetchDocumentDetails } from '../app/services/documentService'
 
-function FileUpload({ onFileRead }) {
-  const handleFileChange = (event) => {
-    const file = event.target.files[0];
+interface FileUploadProps {
+  onFileRead: (fileContent: string, fileName: string) => void;
+}
+
+interface Document {
+  _id: string;
+  name: string;
+  text: string;
+  hash: string;
+}
+
+function FileUpload({ onFileRead }: FileUploadProps) {
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onload = (e) => {
-        const text = e.target.result;
+        const text = e.target?.result as string;
         onFileRead(text, file.name); // Pass the file name
       };
       reader.readAsText(file);
@@ -26,19 +37,19 @@ function FileUpload({ onFileRead }) {
 
   return (
     <label className="cursor-pointer">
-      <UploadIcon className="h-6 w-6" />
+      <UploadIcon className="h-6 w-6" src="/upload-minimalistic-svgrepo-com.svg" alt="Upload Icon" />
       <input type="file" onChange={handleFileChange} className="hidden" />
     </label>
   );
 }
 
 export function Mainv0() {
-  const [text, setText] = useState("");
-  const [name, setName] = useState("");
-  const [documents, setDocuments] = useState([]);
-  const [currentDocId, setCurrentDocId] = useState(null);
-  const [alertMessage, setAlertMessage] = useState('');
-  const [transactionHash, setTransactionHash] = useState('');
+  const [text, setText] = useState<string>("");
+  const [name, setName] = useState<string>("");
+  const [documents, setDocuments] = useState<Document[]>([]);
+  const [currentDocId, setCurrentDocId] = useState<string | null>(null);
+  const [alertMessage, setAlertMessage] = useState<string>('');
+  const [transactionHash, setTransactionHash] = useState<string>('');
 
   useEffect(() => {
     fetchDocuments()
@@ -51,11 +62,11 @@ export function Mainv0() {
       const textHash = starknetHash.starknetKeccak(text).toString();
       const prevHash = currentDocId ? documents.find(doc => doc._id === currentDocId)?.hash : null;
 
-      const response = await saveDocument(currentDocId, { text, name, hash: textHash });
+      const response = await saveDocument(currentDocId ?? undefined, { text, name, hash: textHash });
 
       if (response.ok) {
         const res = currentDocId
-          ? await updateFile(name, prevHash, textHash)
+          ? await updateFile(name, prevHash!, textHash)
           : await createFile(name, textHash);
 
         setAlertMessage(`File ${currentDocId ? 'updated' : 'created'}: ${JSON.stringify(res.transaction_hash)}`);
@@ -65,11 +76,15 @@ export function Mainv0() {
         setAlertMessage(`Error: Failed to save text ${response.statusText}`);
       }
     } catch (error) {
-      setAlertMessage(`Error: ${error.message}`);
+      if (error instanceof Error) {
+        setAlertMessage(`Error: ${error.message}`);
+      } else {
+        setAlertMessage('An unknown error occurred');
+      }
     }
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (id: string) => {
     try {
       const docToDelete = documents.find((doc) => doc._id === id);
       const textHash = docToDelete ? starknetHash.starknetKeccak(docToDelete.text).toString() : null;
@@ -87,22 +102,30 @@ export function Mainv0() {
         setAlertMessage(`Error: Failed to delete document ${response.statusText}`);
       }
     } catch (error) {
-      setAlertMessage(`Error: ${error.message}`);
+      if (error instanceof Error) {
+        setAlertMessage(`Error: ${error.message}`);
+      } else {
+        setAlertMessage('An unknown error occurred');
+      }
     }
   };
 
-  const handleDocumentClick = async (id) => {
+  const handleDocumentClick = async (id: string) => {
     try {
       const data = await fetchDocumentDetails(id);
       setName(data.name);
       setText(data.text);
       setCurrentDocId(data._id);
     } catch (error) {
-      setAlertMessage(`Error: ${error.message}`);
+      if (error instanceof Error) {
+        setAlertMessage(`Error: ${error.message}`);
+      } else {
+        setAlertMessage('An unknown error occurred');
+      }
     }
   };
 
-  const handleFileRead = (fileContent, fileName) => {
+  const handleFileRead = (fileContent: string, fileName: string) => {
     setText(fileContent);
     setName(fileName); // Set the name state with the file name
   };
@@ -181,7 +204,7 @@ export function Mainv0() {
   )
 }
 
-function PlusIcon(props) {
+function PlusIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg
       {...props}
@@ -201,8 +224,7 @@ function PlusIcon(props) {
   )
 }
 
-
-function XIcon(props) {
+function XIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg
       {...props}
@@ -222,7 +244,7 @@ function XIcon(props) {
   )
 }
 
-function UploadIcon(props) {
+function UploadIcon(props: React.ComponentProps<typeof Image>) {
   return (
     <Image
       {...props}
