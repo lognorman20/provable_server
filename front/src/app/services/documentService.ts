@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000";
+const API_BASE_URL = '/api';
 
 export const fetchDocuments = async () => {
   const response = await fetch(`${API_BASE_URL}/documents`);
@@ -7,7 +7,7 @@ export const fetchDocuments = async () => {
 };
 
 export const saveDocument = async (id: string | undefined, data: Record<string, any>) => {
-  const url = id ? `${API_BASE_URL}/update/${id}` : `${API_BASE_URL}/submit`;
+  const url = id ? `${API_BASE_URL}/documents/${id}` : `${API_BASE_URL}/documents`;
   const method = id ? "PUT" : "POST";
   const response = await fetch(url, {
     method,
@@ -19,7 +19,7 @@ export const saveDocument = async (id: string | undefined, data: Record<string, 
 };
 
 export const deleteDocument = async (id: string) => {
-  const response = await fetch(`${API_BASE_URL}/delete/${id}`, { method: "DELETE" });
+  const response = await fetch(`${API_BASE_URL}/documents/${id}`, { method: "DELETE" });
   if (!response.ok) throw new Error(`Failed to delete document: ${response.statusText}`);
   return response;
 };
