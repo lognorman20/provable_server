@@ -46,14 +46,20 @@ function FileUpload({ onFileRead }: FileUploadProps) {
 export function Mainv0() {
   const [text, setText] = useState<string>("");
   const [name, setName] = useState<string>("");
-  const [documents, setDocuments] = useState<Document[]>([]);
+  const [documents, setDocuments] = useState<Document[]>([]); // Ensure documents is initialized as an array
   const [currentDocId, setCurrentDocId] = useState<string | null>(null);
   const [alertMessage, setAlertMessage] = useState<string>('');
   const [transactionHash, setTransactionHash] = useState<string>('');
 
   useEffect(() => {
     fetchDocuments()
-      .then(setDocuments)
+      .then((docs) => {
+        if (Array.isArray(docs)) {
+          setDocuments(docs);
+        } else {
+          console.error("Error: fetchDocuments did not return an array");
+        }
+      })
       .catch(error => console.error("Error fetching documents:", error));
   }, []);
 
