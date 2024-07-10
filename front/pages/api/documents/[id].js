@@ -26,7 +26,9 @@ export default async function handler(req, res) {
       res.status(200).json(document);
     } catch (error) {
       console.error('Error fetching document', error);
-      res.status(500).send('Internal Server Error');
+      if (!res.headersSent) {
+        res.status(500).send('Internal Server Error');
+      }
     }
   } else if (req.method === 'PUT') {
     if (!text && !name && !hash) {
@@ -49,7 +51,9 @@ export default async function handler(req, res) {
       res.status(200).send('Document updated');
     } catch (error) {
       console.error('Error updating document', error);
-      res.status(500).send('Internal Server Error');
+      if (!res.headersSent) {
+        res.status(500).send('Internal Server Error');
+      }
     }
   } else if (req.method === 'DELETE') {
     try {
@@ -60,7 +64,9 @@ export default async function handler(req, res) {
       res.status(200).send('Document deleted');
     } catch (error) {
       console.error('Error deleting document', error);
-      res.status(500).send('Internal Server Error');
+      if (!res.headersSent) {
+        res.status(500).send('Internal Server Error');
+      }
     }
   } else if (req.method === 'POST') {
     if (!text && !name && !hash) {
@@ -71,7 +77,9 @@ export default async function handler(req, res) {
       res.status(201).send(`Document inserted with ID: ${result.insertedId}`);
     } catch (error) {
       console.error('Error inserting document', error);
-      res.status(500).send('Internal Server Error');
+      if (!res.headersSent) {
+        res.status(500).send('Internal Server Error');
+      }
     }
   } else {
     res.setHeader('Allow', ['GET', 'PUT', 'DELETE', 'POST']);
