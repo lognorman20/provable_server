@@ -47,7 +47,7 @@ export function Mainv0() {
   const [text, setText] = useState<string>("");
   const [name, setName] = useState<string>("");
   const [documents, setDocuments] = useState<Document[]>([]); // Ensure documents is initialized as an array
-  const [currentDocId, setCurrentDocId] = useState<string | null>(null);
+  const [currentDocId, setCurrentDocId] = useState<string>('');
   const [alertMessage, setAlertMessage] = useState<string>('');
   const [transactionHash, setTransactionHash] = useState<string>('');
 
@@ -66,7 +66,7 @@ export function Mainv0() {
   const handleSave = async () => {
     try {
       const textHash = starknetHash.starknetKeccak(text).toString();
-      const prevHash = currentDocId ? documents.find(doc => doc._id === currentDocId)?.hash : null;
+      const prevHash = currentDocId !== '' ? documents.find(doc => doc._id === currentDocId)?.hash : null;
 
       const response = await saveDocument(currentDocId ?? undefined, { text, name, hash: textHash });
 
@@ -75,7 +75,7 @@ export function Mainv0() {
           ? await updateFile(name, prevHash!, textHash)
           : await createFile(name, textHash);
 
-        setAlertMessage(`File ${currentDocId ? 'updated' : 'created'}: ${JSON.stringify(res.transaction_hash)}`);
+        setAlertMessage(`File ${currentDocId !== '' ? 'updated' : 'created'}: ${JSON.stringify(res.transaction_hash)}`);
         setTransactionHash(res.transaction_hash);
         fetchDocuments().then(setDocuments);
       } else {
@@ -195,8 +195,8 @@ export function Mainv0() {
             value={text}
             onChange={(e) => setText(e.target.value)}
           />
-          {currentDocId && (
-            <div className="mt-2 text-sm text-gray-500">
+          {currentDocId !== '' && (
+            <div className="mt-2 text-sm text-gray-5000">
               Document ID: {currentDocId}
             </div>
           )}
