@@ -30,7 +30,6 @@ export default async function handler(req, res) {
       console.error('Error inserting document', error);
       res.status(500).send('Internal Server Error');
     }
-    res.status(201).json({ message: 'Document saved' });
   } else {
     res.setHeader('Allow', ['GET', 'POST']);
     res.status(405).end(`Method ${req.method} Not Allowed`);
