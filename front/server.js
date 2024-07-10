@@ -1,4 +1,5 @@
 const next = require('next');
+const cors = require('cors'); // Add this line
 
 const dev = process.env.NODE_ENV !== 'production';
 const app = next({ dev });
@@ -8,7 +9,13 @@ const port = 3000;
 
 app.prepare().then(() => {
   const server = require('http').createServer((req, res) => {
-    handle(req, res);
+    // Add CORS middleware
+    cors({
+      origin: '*', // Adjust the origin as needed
+      methods: ['GET', 'POST', 'PUT', 'DELETE'], // Specify allowed methods
+    })(req, res, () => {
+      handle(req, res);
+    });
   });
 
   server.listen(port, (err) => {
