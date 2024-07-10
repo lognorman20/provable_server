@@ -7,7 +7,7 @@ export default async function handler(req, res) {
   const { id } = req.query;
   const { text, name, hash } = req.body;
 
-  return res.status(200).json(id);
+  
   await client.connect();
   console.log('Connected to MongoDB');
   
