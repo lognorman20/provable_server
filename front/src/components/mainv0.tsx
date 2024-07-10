@@ -1,13 +1,12 @@
-"use client"; // Add this line to mark the component as a client component
+"use client"; // Ensure this line is at the very top
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react"; // Ensure React is imported
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Textarea } from "@/components/ui/textarea";
 import { hash as starknetHash } from "starknet";
 import { createFile, updateFile, removeFile, getFileCount, getFile } from '../lib/contract';
 import AlertDialog from './AlertDialog';
-import React from 'react';
 import Image from 'next/image';
 import { fetchDocuments, saveDocument, deleteDocument, fetchDocumentDetails } from '../app/services/documentService'
 
@@ -44,6 +43,8 @@ function FileUpload({ onFileRead }: FileUploadProps) {
 }
 
 export function Mainv0() {
+  console.log("Mainv0 component rendered"); // Add logging
+
   const [text, setText] = useState<string>("");
   const [name, setName] = useState<string>("");
   const [documents, setDocuments] = useState<Document[]>([]); // Ensure documents is initialized as an array
@@ -52,6 +53,7 @@ export function Mainv0() {
   const [transactionHash, setTransactionHash] = useState<string>('');
 
   useEffect(() => {
+    console.log("Fetching documents"); // Add logging
     fetchDocuments()
       .then((docs) => {
         if (Array.isArray(docs)) {
@@ -68,7 +70,7 @@ export function Mainv0() {
       const textHash = starknetHash.starknetKeccak(text).toString();
       const prevHash = currentDocId !== '' ? documents.find(doc => doc._id === currentDocId)?.hash : null;
 
-      const response = await saveDocument(currentDocId ?? undefined, { text, name, hash: textHash });
+      const response = await saveDocument(currentDocId != "" ? currentDocId : undefined, { text, name, hash: textHash });
 
       if (response.ok) {
         const res = currentDocId
@@ -93,7 +95,7 @@ export function Mainv0() {
   const handleDelete = async (id: string) => {
     try {
       const docToDelete = documents.find((doc) => doc._id === id);
-      const textHash = docToDelete ? starknetHash.starknetKeccak(docToDelete.text).toString() : null;
+      const textHash = docToDelete ? starknetHash.starknetKeccak(docToDelete.text).toString() : undefined;
 
       const response = await deleteDocument(id);
 
