@@ -120,6 +120,7 @@ export function Mainv0() {
 
   const handleDocumentClick = async (id: string) => {
     try {
+      console.log("id mainv0", id)
       const data = await fetchDocumentDetails(id);
       setName(data.name);
       setText(data.text);
@@ -164,6 +165,7 @@ export function Mainv0() {
                   href="#"
                   className="flex-1 truncate"
                   onClick={(e) => {
+                    console.log("doc._id", doc._id)
                     e.preventDefault();
                     handleDocumentClick(doc._id);
                   }}
