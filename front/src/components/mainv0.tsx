@@ -73,7 +73,7 @@ export function Mainv0() {
       const response = await saveDocument(currentDocId != "" ? currentDocId : undefined, { text, name, hash: textHash });
 
       if (response.ok) {
-        const res = currentDocId
+        const res = currentDocId !== ''
           ? await updateFile(name, prevHash!, textHash)
           : await createFile(name, textHash);
 
