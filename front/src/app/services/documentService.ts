@@ -25,6 +25,7 @@ export const deleteDocument = async (id: string) => {
 };
 
 export const fetchDocumentDetails = async (id: string) => {
+  console.log("id", id)
   const response = await fetch(`${API_BASE_URL}/documents/${id}`);
   if (!response.ok) throw new Error(`Failed to fetch document details: ${response.statusText}`);
   return response.json();
