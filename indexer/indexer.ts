@@ -28,12 +28,13 @@ export const config = {
             }
         ],
     },
-    sinkType: "console",
+    sinkType: "mongo",
     sinkOptions: {},
+    "_cursor.to": null,
 };
 
 export default function transform({ events }) {
-    return events.map(({ event, transaction }) => {
+    return (events ?? []).map(({ event, transaction }) => {
         let event_type = event.keys[0];
         console.log(event_type);
         return {
